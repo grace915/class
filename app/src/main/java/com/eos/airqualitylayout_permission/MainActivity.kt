@@ -5,6 +5,8 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -15,7 +17,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.eos.airqualitylayout_permission.databinding.ActivityMainBinding
+import java.io.IOException
+import java.lang.IllegalArgumentException
+import java.util.*
 
 // https://www.iqair.com/ko/ -> API key 받기
 
@@ -35,6 +41,8 @@ class MainActivity : AppCompatActivity() {
     // 위치 서비스 요청 시 필요한 런처
     lateinit var getGPSPermissionLauncher: ActivityResultLauncher<Intent>
 
+    // 위도와 경도를 불러올 때 필요한 변수
+    lateinit var locationProvider: LocationProvider
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +50,55 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         checkAllPermission()
+        updateUI()
     }
 
+    private fun updateUI() {
+        locationProvider = LocationProvider(this@MainActivity)
+
+        // 위도와 경도 정보를 받아오기
+        val latitude: Double = locationProvider.getLocationLatitude()
+        val longitude: Double = locationProvider.getLocationLongitude()
+
+        // 위도와 경도가 맞게 들어왔는지 확인
+        if(latitude != 0.0 || longitude != 0.0) {
+            // 1. 현재 위치를 가져오고 UI 업데이트
+            val address = getCurrentAddress(latitude, longitude)
+
+            address?.let {
+                with(binding){
+                    tvLocationTitle.text = it.thoroughfare
+                    tvLocationSubtitle.text = "${it.countryName} ${it.adminArea}"
+                }
+
+            }
+            // 2. 현재 미세먼지 농도를 가져오고 UI 업데이트
+        } else {
+            Toast.makeText(this, "위도, 경도 정보를 가져올 수 없습니다. 새로고침을 눌러주십시오", Toast.LENGTH_SHORT).show()
+        }
+    }
+    // TODO : 지명을 보여줘야함 -> geocoder 사용. 주소나 지명 <-> 위도와 경도
+    private fun getCurrentAddress(latitude: Double, longitude: Double) : Address? {
+        //
+        val geocoder = Geocoder(this, Locale.getDefault())
+        val addresses : List<Address>? = try {
+            // geocoder 객체를 이용하여 위도나 경도로부터 리스트를 가져오기
+            geocoder.getFromLocation(latitude, longitude, 7)
+        } catch (e: IOException){
+            Toast.makeText(this, "Geocoder 서비스 사용 불가", Toast.LENGTH_SHORT).show()
+            return null
+        } catch (e: IllegalArgumentException) {
+            Toast.makeText(this, "잘못된 위도, 경도입니다.", Toast.LENGTH_SHORT).show()
+            return null
+        }
+        // 에러는 아닌데 주소가 발견디ㅗ지 않은 경우
+        if(addresses == null || addresses.isEmpty()){
+            Toast.makeText(this, "주소가 발견되지 않았습니다.", Toast.LENGTH_SHORT).show()
+            return null
+        }
+        return addresses[0]
+
+    }
     private fun checkAllPermission() {
         if (!isLocationServiceAvailable()) {
             // GPS가 켜져있지 않은 경우
@@ -139,7 +194,8 @@ class MainActivity : AppCompatActivity() {
 
             if (checkResult) {
                 // 위치값을 가져올 수 있음
-            } else {
+                // ToDo : 허용된다면 ui 바꿔야지지
+           } else {
                 // 위치값을 가져올 수 없으면 앱 종료
                 Toast.makeText(
                     this@MainActivity,

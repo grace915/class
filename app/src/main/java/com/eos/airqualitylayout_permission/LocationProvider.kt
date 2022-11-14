@@ -4,16 +4,17 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import androidx.constraintlayout.motion.widget.Debug.getLocation
 import androidx.core.content.ContextCompat
 
-class LocationProvider(private val context: Context) {
+class LocationProvider(private val context: Context) : LocationListener {
     private var location: Location? = null
     private var locationManager: LocationManager? = null
 
     init {
-        getLocation()
+        location = getLocation()
     }
 
     private fun getLocation() : Location? {
@@ -67,5 +68,16 @@ class LocationProvider(private val context: Context) {
             e.printStackTrace()
         }
         return location
+    }
+    // 위치 정보를 가져오는 함수
+    fun getLocationLatitude() : Double {
+        return location?.latitude ?: 0.0
+    }
+    fun getLocationLongitude() : Double {
+        return location?.longitude ?: 0.0
+    }
+
+    override fun onLocationChanged(p0: Location) {
+        TODO("Not yet implemented")
     }
 }
