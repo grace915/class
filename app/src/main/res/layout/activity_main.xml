@@ -36,7 +36,7 @@
 
     <TextView
         android:id="@+id/tv_location_title"
-        android:text="성동구"
+        android:text="이가은"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:letterSpacing="-0.05"
@@ -48,7 +48,7 @@
 
     <TextView
         android:id="@+id/tv_location_subtitle"
-        android:text="대한민국 서울특별시"
+        android:text="본인학번적기"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:letterSpacing="-0.05"
