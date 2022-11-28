@@ -138,48 +138,6 @@ class MainActivity : AppCompatActivity() {
 
         })
     }
-    // 가져온 데이터 정보를 바탕으로 화면 업데이트
-    private fun updateAirUI(airQuailtyData: AirQualityResponse) {
-        val pollutionData = airQuailtyData.data.current.pollution
-
-        with(binding){
-            // 수치 지정(메인 화면 가운데 숫자)
-            // Air Quality Institute 약자로 대기질 지수. aqius는 미국 기준
-            tvCount.text = pollutionData.aqius.toString()
-
-            // 측정된 날짜 지정
-            // pollutionData의 ts는 2022-11-14T14:00:00.000Z 형식으로 되어 있음 -> UTC 시간대. 9시간 느림. ZonedDataTime을 이용해서 서울시간대로 바꿈
-            // 2022-11-14 23:00 형식으로 바꿈
-            val dateTime = ZonedDateTime.parse(pollutionData.ts).withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
-            val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-
-            tvCheckTime.text = dateTime.format(dateFormatter).toString()
-
-            // 상황별 대기 시주 값에 따라 UI 변경
-            when (pollutionData.aqius){
-                // in은 양 끝값 모두 포함
-                // until은 마지막 값 미만
-                // i in 100 downTo 1 step 2는 100부터 1까지 2씩 감소하면서
-                // x in 1...size - 1 === x in 1 until size
-                in 0..50 -> {
-                    tvTitle.text = "좋음"
-                    imgBg.setImageResource(R.drawable.bg_good)
-                }
-                in 51..150 -> {
-                    tvTitle.text = "보통"
-                    imgBg.setImageResource(R.drawable.bg_soso)
-                }
-                in 151..200 -> {
-                    tvTitle.text = "나쁨"
-                    imgBg.setImageResource(R.drawable.bg_bad)
-                }
-                else -> {
-                    tvTitle.text = "매우 나쁨"
-                    imgBg.setImageResource(R.drawable.bg_worst)
-                }
-            }
-        }
-    }
 
     private fun getCurrentAddress(latitude: Double, longitude: Double) : Address? {
         val geocoder = Geocoder(this, Locale.getDefault())
